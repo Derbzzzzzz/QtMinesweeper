@@ -10,4 +10,4 @@ The other section is the subfolder "debug" which contains the deployed version o
 
 ## Screenshots
 
-![Game Screenshot](../Capture.PNG?raw=true)
+![Game Screenshot](https://raw.github.com/Derbzzzzzz/QtMinesweeper/main/Capture.PNG)

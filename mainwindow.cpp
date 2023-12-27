@@ -4,14 +4,14 @@
 #include <QDir>
 #include <QtUiTools/QUiLoader>
 
+// Initial Setup of Application
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    ui->stackedWidget->setCurrentIndex(1);;
-
+    ui->stackedWidget->setCurrentIndex(0);
 
     QFrame* frame = ui->frame;
     frame->setFixedSize(500, 500);
@@ -33,6 +33,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+
 void MainWindow::setBoardUI(QGridLayout* grid, int size)
 {
     while( grid->count() ) { QWidget* widget = grid->itemAt(0)->widget(); if( widget ) { grid->removeWidget(widget); delete widget; } }
@@ -41,11 +42,14 @@ void MainWindow::setBoardUI(QGridLayout* grid, int size)
     grid->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     grid->setHorizontalSpacing(0);
 
+    ui->flag->setCheckState(Qt::Unchecked);
+
     QLabel* endLabel = ui->endLabel;
     endLabel->raise();
     endLabel->setVisible(false);
 
 
+    // Create Buttons for game
     for(int i = 0; i < size; i++)
     {
         for(int j = 0; j < size; j++)
@@ -53,11 +57,13 @@ void MainWindow::setBoardUI(QGridLayout* grid, int size)
             CustomButton *button = new CustomButton(i, j, this);
             button->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
             button->setContentsMargins(0, 0, 0, 0);
-            button->setStyleSheet("margin: 0; padding: 0; background-color: white");
+            QFont f( "Arial", 12, QFont::Bold);
+            button->setFont( f);
+            button->setStyleSheet("margin: 0; padding: 0; background-color: white; color: black");
 
             grid->addWidget(button, i, j);
             connect(button, &CustomButton::clicked, [=](){
-                func(grid, button, i, j);     // Call the function which uses i and j here
+                handleClick(grid, button, i, j);     // Call the function which uses i and j here
             });
         }
     }
@@ -66,12 +72,13 @@ void MainWindow::setBoardUI(QGridLayout* grid, int size)
     grid->setSpacing(0);
 }
 
+// Create Labels for when button is clicked
 QLabel* MainWindow::createLabel(int i, int j)
 {
     QLabel * label = new QLabel(this);
     label->setAlignment(Qt::AlignCenter);
     QFont f( "Arial", 12, QFont::Bold);
-    label->setFont( f);;
+    label->setFont( f);
     char val = aBoard->getVal(i, j);
     if(val == '0') { label->setStyleSheet("color: white;");}
     else if(val == '1') { label->setStyleSheet("color: blue;");}
@@ -86,6 +93,7 @@ QLabel* MainWindow::createLabel(int i, int j)
     return label;
 }
 
+// Clear Board on win / lose to show complete grid
 void MainWindow::clearBoard(QGridLayout* grid)
 {
     for (int i = 0; i < aBoard->getSize(); i++)
@@ -112,6 +120,7 @@ void MainWindow::revealSquare(QGridLayout* grid, CustomButton * button, int i, i
     uBoard->setVal(i, j, aBoard->getVal(i, j));
 }
 
+// recursive dfs search (done when square with 0 neighboring bombs is clicked)
 void MainWindow::recSearch(QGridLayout* grid, int x, int y, int size)
 {
     if (x < 0 or y < 0 or x >= size or y >= size or uBoard->getVal(x, y) != '-')
@@ -149,10 +158,21 @@ void MainWindow::recSearch(QGridLayout* grid, int x, int y, int size)
     recSearch(grid, x - 1, y - 1, size);
 }
 
-void MainWindow::func(QGridLayout* grid, CustomButton * button, int i, int j)
+// handles button clicks (both flagging and revealing squares)
+void MainWindow::handleClick(QGridLayout* grid, CustomButton * button, int i, int j)
 {
 
-    if(aBoard->getVal(i, j) == BOMB)
+    if(ui->flag->isChecked())
+    {
+        if(button->text() == "")
+        {
+            button->setText("B");
+        } else
+        {
+            button->setText("");
+        }
+    }
+    else if(aBoard->getVal(i, j) == BOMB)
     {
         clearBoard(grid);
         QLabel* endLabel = ui->endLabel;
@@ -173,6 +193,7 @@ void MainWindow::func(QGridLayout* grid, CustomButton * button, int i, int j)
     }
 }
 
+// Start Game and intitialize new board objects
 void MainWindow::startGame(int size, int bombs)
 {
     aBoard = new actualBoard(size, bombs);
@@ -201,11 +222,12 @@ void MainWindow::on_btnBack_clicked()
 }
 
 
+// free boards from game and return to home screen
 void MainWindow::on_btnQuit_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(0);
     aBoard->free();
     uBoard->free();
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 

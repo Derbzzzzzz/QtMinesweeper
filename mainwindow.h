@@ -69,7 +69,7 @@ private:
     void recSearch(QGridLayout* grid, int x, int y, int size);
     void clearBoard(QGridLayout* grid);
     void revealSquare(QGridLayout* grid, CustomButton * button, int i, int j);
-    void func(QGridLayout* grid, CustomButton * button, int i, int j);
+    void handleClick(QGridLayout* grid, CustomButton * button, int i, int j);
     void startGame(int size, int bombs);
     void setBoardUI(QGridLayout* grid, int size);
     QLabel* createLabel(int i, int j);
